@@ -1,0 +1,391 @@
+\chapter{Introduction}\label{ch:Introduction}
+The arctic is dynamic, increasingly variable, and highly impactful to the global climate.  The retreat of seasonal sea ice extent has opened the arctic and necessitates the development of accurate sea ice prediction tools to support informed decisions on the protection of National interests, resource exploitation operations, and environmental climate prediction.  However, in the polar regions, observations are at a premium.  The punishing and unforgiving environment make direct observation of the sea ice on a basin scale nearly impossible.  Systems, such as IceSat 2, are capable, but are still unable to fully resolve the dynamics of sea ice behavior.
+
+To allay this observational deficit, sea ice modeling must be pursued.  Historically, sea ice models have been forced to make concessions in resolution, both spatially and temporally, due to limited computational resources.  \cite{Hibler1979} outlines the \ac{VP} model that established the approach pursued by sea ice scientists for years and is illustrative of the lengths to which computational limitations can be mitigated.  Hibler's model, and those sea ice models that use a continuum approximation for sea ice, can trace their lineage to the \ac{AIDJEX}, a joint Canadian-American field experiment to develop a sea ice model from 1975 to 1976.
+
+As access to high performance computational resources has increased, \ac{AIDJEX} era models have improved resolution and are able to produce reasonably good sea ice predictions.  However, this improvement has an upper limit.  As the resolution of the model increases, it becomes necessary to model individual ice floes within a grid cell in violation of the \ac{AIDJEX} era model assumption of continuum ice rheology.
+
+Historically relegated to theoretical discussions due to their computational complexity for earth system scale simulations, \acp{DEM} are the necessary next evolution in sea ice modeling.  \acp{DEM} are uniquely suited to the brittle fracture and anisotropic characteristics of sea ice.  Furthermore, \acp{DEM} are not subject to the resolution limitations of continuum sea ice models.  Discrete Elements can easily be resized as computational resources improve.
+
+This transition from continuum models to granular discrete element models requires transition states.  Exascale global climate modeling requires enormous computing resources to execute and concessions are needed in the sea ice modeling.  At current computing capacity, it is estimated that elements in \ac{DEMSI} will be cylindrical with a diameter of 2 km and a thickness of 1 m.  At this scale, a typical assumption of \acp{DEM}, that all elements are rigid, breaks down.  For \ac{DEMSI}, the workaround for this concession is the implementation of a Hopkin's contact model~\citet{Hopkins1996}.
+
+%%%%% CONTINUUM SEA ICE MODELS %%%%
+\section{Continuum Sea Ice Models}\label{sec:Intro_Continuum}
+Early sea ice modeling work done by Coon, in conjunction with \ac{AIDJEX}, created an early sea ice model that treated sea ice as a continuous elastic-plastic solid~\citet{Coon}.  The elastic-plastic assumption states that the floe interactions can be modeled by two types of deformation: those that occur at a stress state \textit{within} the plastic deformation envelope and those that occur \textit{on} the plastic deformation envelope.  Deformations that occur within are elastic and are therefore reversible.  Conversely, those that occur on the envelope are plastic or completely irreversible and permanent.  It is in these permanent deformations that the model developed by Coon addressed ridging and cracking of sea ice.
+
+While under convergent conditions, and at the failure limit, the ice becomes thicker.  Conversely, at the same yield limit curve and divergent conditions, the sea ice becomes thinner.  This treatment of sea ice thickness evolution in time enables the development of realistic sea ice extent and thickness distributions across the arctic further allowing for a more rigorous treatment of thermodynamic and dynamic processes affecting the arctic climate system.
+
+At their core, these continuum type models use a \textit{Momentum Balance}, \textit{Constitutive Law}, \textit{Ice Thickness Distribution}, and an \textit{Ice Strength} equation to solve for sea ice  dynamics and continuity~\citet{Hibler1979}.
+
+The momentum balance solves for the material acceleration of sea ice due to contributions by the Coriolis force, atmospheric drag stress, oceanic drag stress, sea surface height gradient, and internal forces within the ice.  Application of Newton's second law yields equation \ref{eq:Continuum_Momentum}.  For information on the symbols used in this equation, and those following, see table \ref{table:Continuum_Definitions}.
+
+% Continuum Momentum Equation
+\begin{equation}
+m\frac{D\mathbf{u}}{Dt}= -mf\mathbf{k}\times\mathbf{u} + \boldsymbol{\tau}_a + \boldsymbol{\tau}_w - mg\nabla H + \mathbf{F}
+\label{eq:Continuum_Momentum}
+\end{equation}
+
+Where,
+
+% Wind Stress
+\begin{equation}
+\boldsymbol{\tau}_a = c_a\rho_a|\mathbf{U}_a|(\mathbf{U}_a\cos{\phi}+\mathbf{k} \times \mathbf{U}_a\sin{\phi})
+\label{eq:Hibler_Wind_Stress}
+\end{equation}
+% Ocean Current Stress
+\begin{equation}
+\boldsymbol{\tau}_w = c_w\rho_w|\mathbf{U}_w-\mathbf{u}|[(\mathbf{U}_w-\mathbf{u})\cos{\theta}+\textbf{k} \times (\mathbf{U}_w-\mathbf{u})\sin{\theta}]
+\label{eq:Hibler_Current_Stress}
+\end{equation}
+
+The final term in the equation, $\mathbf{F}$, requires a constitutive law to relate the internal forces to the stress state of the material, $\sigma_{ij}$.  Coon used an elastic-plastic constitutive law wherein any stress states that occur within the yield curve are elastic and those occurring on the yield curve are plastic.
+
+% Symbol Definitions//Continuum Dynamics
+\begin{table}
+[H]
+\caption{Symbol Definitions for Continuum Dynamics Equations}
+\centering
+\begin{tabular}{llll}
+\hline
+m & mass per unit area & \textbf{u} & ice velocity\\
+$\sigma_{ij}$ & stress tensor & H & dynamic sea surface height\\
+$\boldsymbol{\tau}_w$ & ocean stress vector & $\boldsymbol{\tau}_a$ & wind stress vector\\
+$\textbf{U}_w$ & geostrophic ocean current & $\textbf{U}_a$ & geostrophic wind\\
+$\textbf{F}$ & Internal Force ($\nabla\cdot\mathbf{\sigma}$) & $\dot{\mathbf{\epsilon}_{ij}}$ & strain rate tensor\\
+$\eta$ & shear viscosity & $\zeta$ & bulk viscosity\\
+e & elliptic yield curve eccentricity & P & Pressure\\
+$\delta_{ij}$ & Kronecker Delta & & \\
+\hline
+\end{tabular}
+%\caption*{\textcolor{purple}{Should I add anything in regards to notation?  Bold for vectors, etc.}}
+\label{table:Continuum_Definitions}
+\end{table}
+
+While the justification for this assumption is well defended, it leads to the unfortunate aspect of his model in which strains are effectively stored indefinitely to reverse elastic deformations.  This is a computational inefficiency that leads to the model being ineffective for long time scale (climatology) modeling~\citet{Hibler1979}.
+
+To address this, and other computational concerns, Dr. Hibler developed a sea ice model based on a similar continuum assumption.  However, he made the further assumption that the ice has no elastic deformation mode, but rather deforms as a highly viscous material undergoing plastic deformation.  This assumption removed the requirement to store strains indefinitely and allowed for even greater simplification~\citet{Hibler1979}.
+
+By making the viscous-plastic assumption, the model approximates sea ice as a slowly creeping fluid over top the ocean.  This type of flow is parameterized by confining the local stress states within the modeled sea ice to an elliptic yield curve where the nonlinear bulk and shear viscosities, $\zeta$ and $\eta$ respectively, are dependent on the local strain rate through the following relationships:
+
+% Stress Tensor Equation
+\begin{equation}
+\sigma_{ij}=2\eta\dot{\epsilon}_{ij}+(\zeta-\eta)\dot{\epsilon}_{kk}\delta_{ij}-\frac{P\delta_{ij}}{2}
+\label{eq:Stress_Tensor_VP}
+\end{equation}
+
+Where $\zeta = P/2\Delta$, $\eta=P/2\Delta e^2$ and,
+
+% Elliptic Yield Curve Equations
+\begin{equation}
+\Delta=\sqrt{\left(\dot{\epsilon}_{11}^2+\dot{\epsilon}_{22}^2\right)(1+e^{-2})+e^{-2}\dot{\epsilon}_{12}^2+2\dot{\epsilon}_{11}\dot{\epsilon}_{22}(1-e^{-2})}
+\label{eq:Delta_VP}
+\end{equation}
+
+Equations \ref{eq:Stress_Tensor_VP} and \ref{eq:Delta_VP} produce the characteristic elliptic yield curve of Hibler's model, see Figure \ref{fig:Elliptic_Yield_Curve}.  \textcolor{purple}{For comparison, a newtonian viscous fluid yield curve is also included.}
+
+% Elliptic Yield Curve Figure
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=4.5in]{figs/Mohr_Coulomb.eps}
+\caption{Elliptic Yield Curve for Viscous Plastic Rheology: Presentation of the principal stress states $(\sigma_{I},\sigma_{II})$, as derived from equations presented in Hibler, 1979, produced for a Viscous Plastic Rheology.  \textcolor{purple}{This needs to be rebuilt.  Reformulate in terms of $\sigma_I$ and $\sigma_{II}$.  Furthermore, replace Newtonian Viscous line with Mohr-Coulomb}}
+\label{fig:Elliptic_Mohr_Coulomb}
+\end{figure}
+
+From these equations, the zonal (x) and meridional (y) internal force components are computed,
+\begin{equation}
+F_x = \frac{\partial}{\partial x} \left[ (\eta+\zeta) \frac{\partial u}{\partial x} + (\zeta - \eta) \frac{\partial v}{\partial y} - \frac{P}{2}\right] + \frac{\partial}{\partial y} \left[ \eta \left( \frac{\partial u}{\partial y} + \frac{\partial v}{\partial x} \right) \right]
+\end{equation}
+\begin{equation}
+F_y = \frac{\partial}{\partial y} \left[ (\eta+\zeta) \frac{\partial v}{\partial y} + (\zeta - \eta) \frac{\partial u}{\partial x} - \frac{P}{2}\right] + \frac{\partial}{\partial x} \left[ \eta \left( \frac{\partial u}{\partial y} + \frac{\partial v}{\partial x} \right) \right]
+\end{equation}
+
+The \ac{VP} constitutive law ensures that the same set of equations can be utilized over the entire model domain while accurately depicting basin scale ice floe motions.  The weakness of the model, however, is that it is not scalable and has a severe numerical singularity as the local strain rate approaches zero; $\zeta$ and $\eta$ both approach infinity as $\dot{\epsilon}_{ij}$ goes to zero.
+
+The second of these problems was addressed by Hibler in his original formulation of the \ac{VP} where he limited $\zeta$ and $\eta$ to maximum values.  While this does introduce some deviation from nature in the form of creep for ice that should otherwise be rigid, the values were chosen such that they were only reached for very small deformation rates ($\approx10^{-4}$ 1/day)~\citet{Hibler1979}.
+
+More difficult to solve though, is the first identified issue of the \ac{VP} model: it's lack of scalability.  From Elizabeth Hunke's "An Elastic-Viscous-Plastic Model for Sea Ice Dynamics":
+\begin{quotation}
+The standard model for sea ice dynamics treats the ice pack as a visco-plastic material that flows plastically under typical stress conditions but behaves as a linear viscous fluid where strain rates are small and the ice becomes nearly rigid.  Because of large viscosities in these regions, implicit numerical methods are necessary for time steps larger than a few seconds.  Current solution methods for these equations use iterative relaxation methods, which are time consuming, scale poorly with mesh resolution, and are not well adapted to parallel computation~\citet{Hunke1997}.
+\end{quotation}
+
+According to Dr. Hunke, the model is computationally inefficient at small strain rates and is "not well adapted to parallel computation."  The requirement to tune $\zeta$ and $\eta$ in the limit of very small strain rates leads to perturbations propagating through the modeled sea ice very slowly and therefore need very small time steps to resolve their motion and retain stability.  This restriction to very small time steps makes it unsuitable for large scale climatological studies at reasonable resolution.
+
+Among other changes, Dr. Hunke incorporated an elastic term into the constitutive law to force the model to behave in an elastic manner in the limit of low deformation rates~\citet{Hunke1997}.
+
+% Hunke Constitutive Law
+\begin{equation}
+\frac{1}{E}\frac{\partial \sigma_{ij}}{\partial t} + \frac{1}{2\eta}\sigma_{ij}+\frac{\eta-\zeta}{4\eta\zeta}\sigma_{kk}\delta_{ij} = \dot{\epsilon}_{ij}
+\label{eq:Hunke_Constitutive}
+\end{equation}
+
+This inclusion allows the sea ice model to behave as a \ac{VP} system above the characteristic time scales of wind variability and adjusts through elastic wave mechanisms for smaller time scales.  These changes, along with implementation of more efficient computational techniques, enabled more stable solution convergence, improved computational efficiency and allowed much larger model time steps.
+
+While a significant computational improvement allowing for significant gains in model resolution, Hunke's \ac{EVP} model still makes a fatal assumption about the character of sea ice; it assumes that sea ice is isotropic.
+
+%%%%%%%% SEA ICE ANISOTROPY %%%%%%%
+\section{Sea Ice Anisotropy}\label{sec:Intro_Anisotropy}
+Typically, continuum models assume isotropic sea ice.  The isotropic assumption allows for the treatment of sea ice as a homogenous material with variable spatial extent.  While computationally not burdensome, much of the brittle character of sea ice is lost and many of the characteristic behaviors of the medium do not manifest sea ice models, particularly at high resolution.
+
+Many of the unique characteristics of sea ice, it's motion and spatial variability particularly, owe their existence to sea ice's severe anisotropy.  Figure \ref{fig:Thin_Sea_Ice} shows an aerial view of typical sea ice cover showing clearly the distribution of sea ice thickness and grain boundaries.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=6in]{figs/Thin_Sea_Ice.jpg}
+\caption{Thin Sea Ice: Visible Anisotropy: At all length scales, sea ice anisotropy is visible necessitating the development of parameterizations or novel modeling schemes to capture the spatial variability of sea ice~\citet{AWI2014}.}
+\label{fig:Thin_Sea_Ice}
+\end{figure}
+
+As sea ice model resolution has improved, the anisotropy limitation of \ac{AIDJEX} era models has been addressed in a number of novel ways.  Most of this work has been done by attempting to parameterize at sub-grid scales the anisotropies effect on the modeled grid-scale motions and behaviors of the sea ice.
+
+Examples of this work are:
+
+\begin{outline}
+\1 Sea ice fault reorientation~\citet{Wilchinsky2011}
+\1 Sea ice element orientation and configuration~\citet{Tsamados2013}
+\1 Sub-grid size ridge and lead formation effect on environmental drag characteristics~\citet{Tsamados2014}
+\1 Mushy-Layer Thermodynamics~\citet{Turner2015}
+\end{outline}
+
+Each of these techniques seek to accomplish the same goal, parameterize a continuum model to modify the behavior to be more consistent with real ice.  For instance, the techniques outlined in the paper \textit{Impact of Variable Atmospheric and Oceanic Form Drag on Simulations of Arctic Sea Ice} by Michel Tsamados et al., seek to parameterize the highly anisotropic distribution of ridges and leads within grid cells.  The environmental drag coefficients in equations \ref{eq:Hibler_Wind_Stress} and \ref{eq:Hibler_Current_Stress} are highly dependent on boundary layer roughness and require precise estimations of the ridge state of a sea ice grid point to accurately model the dynamics of the system.  Tsamados's technique develops more representative environmental momentum flux by including variations in the ice roughness allowing for better simulations of sea ice dynamcis.
+
+However, these parameterizations are ultimately half measures born of limited computational capability and adherence to continuum modeling schemes for sea ice.  Illustratively, the roughness parameterizations of Tsamados~\citet{Tsamados2014} still fail at high resolutions.  These parameterizations carry the legacy and fatal flaws that make them, ultimately, incapable of meeting the requirements of the future's high resolution requirements for sea ice modeling.
+
+%%%%% DISCRETE ELEMENT THEORY %%%%%
+\section{Discrete Element Method Sea Ice Models}
+An alternative to the parameterization schemes discussed in Section \ref{sec:Intro_Anisotropy} is to model the sea ice system in such a way as to allow for the anisotropy to evolve naturally due deterministic pair interactions at small scales.
+
+\acp{DEM} simulate highly complex macroscopic behavior through simple pair wise interactions.  These models are uniquely suited to highly anisotropic systems  and are computationally efficient at sufficient levels of processing parallelism and small temporal and spatial scales.
+
+\acp{DEM} work by treating the medium to be modeled as a collection of rigid small scale particles.  These small scale particles dynamics are then constrained through fundamental physical relationships and the system is then allowed to evolve.  These relationships start, like the continuum models, with dynamics equation for the $i^{th}$ element~\citet{Herman2013}:
+
+% EQUATION: DEM Linear Momentum
+\begin{equation}
+m_i\frac{d\mathbf{u}_i}{dt}=-m_if\mathbf{k}\times\mathbf{u}_i+\int_{S_i}\check{\mathbf{f}}_{s,i}ds+\int_{V_i}\check{\mathbf{f}}_{b,i}dv+\sum_{j\in C_i(t)}\hat{\mathbf{F}}_{ij,n}
+\label{eq:DEM_Linear_Momentun}
+\end{equation}
+
+Where the rate of change of the $i^{th}$ element momentum is due to \textit{Coriolis Force}, \textit{Surface Force}, \textit{Body Force}, and the sum of \textit{Contact Force}s.
+
+Unlike continuum models where vorticity is computed from the curl of the velocity field, \acp{DEM} require explicit treatment of angular momentum:
+
+% EQUATION: DEM Angular Momentum
+\begin{equation}
+m_i\frac{r_i^2}{2}\frac{d\omega_i}{dt}=\mathbf{k}\cdot\left(\int_{S_i}\mathbf{r}\times \mathbf{f}_{s,i}ds+\int_{V_i}\mathbf{r}\times \mathbf{f}_{b,i}dv+\sum_{j\in C_{i}(t)}\mathbf{r}_{ij}\times \hat{\mathbf{F}}_{ij,t}\right)
+\label{eq:DEM_Angular_Momentum}
+\end{equation}
+
+Where the rate of change of the $i^{th}$ element angular momentum, assuming the elements are cylindrical ($I = \frac{r_i^2}{2}$), is defined normal to the surface and is the cumulative effect of the tangential components of the forces acting on the element.
+
+% TABLE: Symbol Definitions//Discrete Element Dynamics
+\begin{table}
+	[H]
+	\caption{Symbol Definitions for \ac{DEM} Dynamics Equations}
+	\centering
+	\begin{tabular}{ll}
+	\hline
+	$m_i$ & element mass per unit area \\
+	$\mathbf{r}$ & element radius \\
+	$\mathbf{u}_i$ & element velocity \\
+	$\omega_i$ & element angular velocity \\
+	$\check{\mathbf{f}}_{s,i}$ & surface force \\
+	$\check{\mathbf{f}}_{b,i}$ & body force \\
+	$\hat{\mathbf{F}}_{ij,n}$ & contact force \\
+	\hline
+	\end{tabular}
+\end{table}
+
+Another notable difference from the \ac{AIDJEX} era model dynamics is the lack of an internal force component.  This is due to the typical rigid body approximation made by \acp{DEM}.  Finally, because the elements have spatial scale and are forced by neighbor contact networks, the force network must be handled explicitly and with great care.  In this regard, a software suite developed by \ac{SNL} is well suited for the scale of the model required for \ac{DEMSI}.
+
+\ac{LAMMPS} is coded to handle molecular interactions where the rigid particle approximation is more than sufficient.  It explicitly computes the force networks for rigid elements in the simulation domain and integrates them through time.  The software is efficient, having been optimized for massively parallel systems, open source and readily modifiable to customize to \ac{DEMSI}'s needs.
+
+However, being a molecular simulator primarily focused on atomic/molecular interactions and behavior, the system is hard coded to work with rigid elements.  This assumption breaks as the ice elements increase in scale to the anticipated scaling of elements in \ac{DEMSI} of 1 km diameter and 1 m thickness.  At this scale, the ice floe elements will not be able to be treated as rigid and techniques are required to explicitly describe element constitutive relationships and allow for element deformation.
+
+\section{Peridynamics}
+The constitutive relationship and bond parameterization that are required for simulation of sea ice floes in \ac{DEMSI} require experimentation on samples of ice that exceed any practical apparatus' capability.  To perform the required material property experiments, this study has pursued a virtual construction of an ice floe which is then subjected to specific forcing to investigate the mechanical properties and yield characteristics.
+
+The sub-floe scale interactions, the internal stress behavior of the ice, is modeled through a branch of material science called Peridynamics.  Developed by \cite{Silling2000}, Peridynamics is a scheme by which materials are envisioned as a continuum of points subject to small scale point interactions that define the internal dynamics.
+
+To constrain the behavior of intermediate scale ice floes, like those that will be used by \ac{DEMSI}, Peridynamics will be used to create simulated ice floes at the 1 km scale which 
+\pagebreak
+
+%%%%%%%%%% SCOPE OF STUDY %%%%%%%%%
+\section{Scope of Study}
+\textcolor{purple}{This section can be relatively short, but should attempt to break down the intention of the study.  Ensure that it is understood that mechanical properties of the aggregate is not well bound and is required for physically representative pair interactions within \ac{DEMSI}}
+\begin{outline}[enumerate]
+\1 Scope of Study
+\2 Seek to provide to DEMSI full variable space for Hopkins Parameters
+\end{outline}
+
+%%%%%%%%%%%%% METHODS %%%%%%%%%%%%%
+\section{Methods}
+\begin{outline}[enumerate]
+\1 Describe potential schemes for resolving ridging in the elements.
+\2 Describe Coulombic Yield criteria
+\2 Give basic outline of Variational Technique to evaluate ridge end state as a function of floe interactions.
+\2 For every time step and every element
+\3 Evaluate the Coulombic Yield criteria.
+\3 Modify element consistent with Variational Ridging Technique
+\2 Outline potential schemes for achieving modification
+\3 Use external code, python or matlab, to reinitialize the model at regular intervals introducing an intermediate processing step.
+\4 Slow, Non-scaleable, Computationally expensive
+\4 Good for proof of concept
+\3 Write a fix, in LAMMPS src, to modify elements based on stress state.
+\4 Difficult to code
+\4 Fast, Scalable
+\3 Add additional parameter to atom type to trace ridge state
+\4 Difficult to code, Possible issues with stability of code
+\4 Fast, Scalable
+\2 Describe methods to validate data
+\end{outline}
+
+This study seeks to develop methods and analysis tools to include element deformation schemes into \ac{DEMSI} in support of the Morphological Model being developed by \ac{NPS}.
+
+Element stress states will be confined to a Coulombic Yield criteria.  This technique has been shown [FIND CITATION] to be accurate when applied to granular systems and are sufficiently simple to implement into the code.  Element stress states will be evaluated on a per element basis.  If the stress state is on, or outside, the yield envelope the element will be deformed according to the applied stress state.
+
+The deformation of the element will be done either catastrophically (instantaneous deformation to post ridge state) or by a computed strain rate tensor that changes contact force values during the deformation event and will be integrated until the end point ridge state is reached.  End state ridge states will be computed through techniques developed by Dr. Roberts.
+
+\ac{LAMMPS} is, apparently, ill suited for non-rigid particle simulations.  Pre-developed software tools in the system for discrete model analysis does not currently extend will to particles that resize between time steps.  To resolve this weakness, techniques must be developed to circumvent the limitation.  The options are:
+\begin{outline}
+\1 Use external code, python or matlab, to reinitialize the model at regular intervals introducing an intermediate processing step.
+\2 Slow, Non-scaleable, Computationally expensive
+\2 Good for proof of concept
+\1 Write a fix, in LAMMPS src, to modify elements based on stress state.
+\2 Difficult to code
+\2 Fast, Scalable
+\1 Add additional parameter to atom type to trace ridge state
+\2 Difficult to code, possible issues with stability of code
+\2 Fast, scalable
+\end{outline}
+
+All three methods have weakness and will be investigated to determine the best course for development and inclusion in \ac{DEMSI} and are the primary area of investigation for this work.
+
+To validate the methodologies techniques that demonstrate the scale invariance of the system are required to be developed.  Temporal and spatial scale invariance are properties of sea ice motion and extent.  This invariance has characteristic power law distributions~\citet{Weiss2013}.
+
+Expected relationships for the simulation domain are~\citet{Weiss2013}:
+
+% EQ: Scale Invariance for Continuum
+\begin{equation}
+\dot{\epsilon}(L,\tau)\sim\tau^{-\alpha_o}L^{-\beta_o}e^{c \ln(\tau)\ln(L)} % Weiss, pg. 45
+\end{equation}
+
+Equation A.13 is developed under a continuum assumption.  Modified for discrete events (more applicable to brittle failure modes), equation A.14 is obtained.
+
+% EQ: Scale Invariance for DEM
+\begin{equation}
+N(L,t) \sim t^{\delta_o}L^{D_o}e^{c'\ln(t)\ln(L)} % Weiss, pg. 69
+\end{equation}
+
+Using an arctic basin scale simulation, distribution functions of $\dot{\epsilon}(L,t)$ and $N(L,t)$ will be generated and compared to equations A.14 and A.15 to determine if the techniques developed for \ac{DEMSI} produce physically realistic scale invariance in the system.
+
+To this end, post processing tools that determine distributions of elements from the smallest element in the simulation to the largest coherent floe complex are required and will be developed in conjunction with the development of the morphology scheme for \ac{DEMSI}.
+\pagebreak
+
+%%%%%%%%%%%%%%% PLAN %%%%%%%%%%%%%%
+\section{Plan}
+\begin{outline}[enumerate]
+\1 Establish experiment parameters to pre-determine Ridge state (final)
+\2 Are intermediate states available?
+\1 Build Test Cases
+\2 Requirements
+\3 Element resolution order of magnitude
+\4 Relatively high to make smoother transitions for N variation.
+\3 Cantilever, Compression, Tension
+\1 Compute Ridge state from variational techniques \& test case conditions
+\1 Run test cases
+\1 Iterate Hopkin's parameters to match variational ridge.
+\1 Once solution is stable, evaluate failure limits of structure
+\2 Plot stress states as system develops
+\3 Run multiple trials to find the full stress state space
+\3 Confirm Mohr-Coulomb \lq envelope\rq and extract parameters
+\2 Plot stress/strain curve
+\3 Find moduli values
+\1 Perform Sensitivity analysis of derived quantities
+\2 Aggregate Scale
+\2 Thickness
+\2 Porosity
+\2 Forcing
+\1 To be Resolved:
+\2 Aggregate distortion and deformation scheme.
+\3 Element Resize
+\3 Stack
+\2 Mechanical Properties of Sea Ice as a function of $\rho$, $\phi$, and H
+\end{outline}
+\pagebreak
+
+%%%%%%% ANTICIPATED FIGURES %%%%%%%
+\section{Anticipated Figures}
+\begin{outline}[enumerate]
+\1 Single Element Cases:
+\2 Illustrative Figures:
+\3 Principle stress state schematic with failure envelope
+\4 Granular
+\4 Continuum (Non-Linear Viscous Plastic, Newtonian)
+\3 Hopkins Schematic
+\3 Ridge Schematic
+\3 Aggregate Element Schematic
+\2 Computed Figures:
+\3 End State Compression Ridge using Mohr-Coulomb (Variational)
+\3 End State Compression Ridge using Hopkins (DEMSI)
+\3 End State Tension Fracture using Hopkins (DEMSI)
+\3 End State Shear Rupture using Hopkins (DEMSI)
+\3 Stress vs. Strain per test case
+\3 Principle Stress states
+\2 Sensitivity Analysis:
+\3 N, L, H, etc.
+\1 Multiple Element Cases:
+\2 Primarily illustrative
+\end{outline}
+\pagebreak
+
+%%%%%%%%%%%%% OUTLINE %%%%%%%%%%%%%
+\section{Outline}
+\begin{outline}[enumerate]
+\1 More capable Sea Ice models are required
+\2 Current and past computational capability necessarily limited sea ice modeling fidelity
+\3 Further limited by polar modeling constraints
+\4 Data Sparsity
+\4 Climatically Dynamic
+\4 Complex Cryosphere exchange mechanisms
+\2 With increasingly dynamic climate system, high confidence sea ice models are required to accurately forecast future climate states
+\2 Accurate climate states required to effectively plan and meet National Security challenges in the arctic and elsewhere
+\2 Exascale modeling enables high resolution modeling where continuum assumptions break down
+
+\1 Continuum sea ice models
+\2 Introduce Dynamics equations for sea ice
+\3 Introduce idea of constitutive relationship for "solid" materials
+\2 Introduce Hibler's Model for Sea Ice
+\3 Explain and state Hibler's viscous plastic rheology
+\3 State weakness of the model (ineffeciency on parallel processors / computationally inefficient resolution for diagnostic equations / spatial perturbations are slow to resolve)
+\2 Introduce Hunke's modification
+\3 Explain addition of elastic modification
+\3 State that inclusion of modification accelerates the resolution of spatial perturbations, particularly in parallel computational environments.
+\2 Briefly Describe other modifications and motivation for their inclusion
+
+\1 Discrete element sea ice models
+\2 Discrete Element Model Transition
+\3 Explain the requirement for transitioning from continuous models to discrete element models.
+\4 Describe the general conceptualization of continuous models and modifications therein to try to account for the anisotropic character of sea ice.
+\4 Explain that these modifications are simply parameterizations that are useful in a limited computation environment.
+\3 Explain the use of a discrete element model to allow sea ice anisotropy to manifest from rigorous physics at the element level.
+\2 Rigid Particle Problem
+\3 Discrete element models typically assume rigid elements.
+\4 Requires small particles
+\4 Requires 3-D modeling for ridging mechanics
+\3 DEMSI particles will be 6 km in diameter and 1 meter thick (not small).  They will be constrained to a 2-D manifold (no ridging possible)
+\2 Discuss Hopkins Contact Model
+\2 Hopkins parameters unconstrained
+
+\1 Scope of Study
+\2 Seek to provide to DEMSI full variable space for Hopkins Parameters
+
+\1 Methodology
+\2 Use Variational Technique to compute end state ridges
+\2 Compare to high resolution single aggregate test cases to constrain Hopkins parameters
+\2 Apply full spectrum forcing to generate failure envelope
+\3 $\mu_c$, $\sigma_t$, $\sigma_c$
+\2 Perform sensitivity analysis
+\3 Aggregate Element Scale
+\3 Density/Porosity
+\3 Thickness
+\end{outline}
+\pagebreak

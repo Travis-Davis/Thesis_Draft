@@ -1,0 +1,179 @@
+\label{app:Vestigial}
+\section{Motivation for Study}
+\subsection{Importance of Climate Modeling}
+In an era of an increasingly variable climate, we must ensure that our models and predictive capacity of our atmosphere and ocean can meet the task.  Global commerce, National Resource Management, and the National Defense necessitate accurate and timely prediction of our climate.
+
+[Is there anything the current National Security Documentation (Defense, National etc.) to quote/cite?]
+
+Commerce
+National Defense
+Resource Management
+Long Term Climate Prediction
+
+
+High resolution sea ice models are required for the newest generation of earth system models.  To date, ice modeling has largely been accomplished by applying continuum mechanics to parameterize averaged grid scale sea ice coverage for application in coupled climate models.
+
+With sufficiently low resolution models, sea ice anisotropy can be statistically averaged with little danger to the overall model.  However, with increases in model resolution, sea ice behavior looks less like the pseudo-solid fluids of previous sea ice models, but rather more like granular solids moving along the air-ocean boundary.  Current sea ice models are ill equipped to describe this behavior and new schemes must be developed.
+
+How do you forecast where the ice will be?
+
+Earth scale climate models are critical to our understanding of the dynamics of our environment.  It is of critical importance that we develop accurate models to enable our most precise weather, 
+Why model the climate:
+
+- predictive climatology
+
+- numerical weather prediction
+
+- \ac{MIZ} forecasting
+
+	- tactical considerations near \ac{MIZ} and access to arctic ocean
+    
+- Why is ice such an important component of the climate.
+
+	- Heat sink
+    
+    - Albedo effects
+    
+    - Surface area of ocean covered by ice
+    
+    - Thermodynamics of sea ice
+    
+    - Feedback mechanisms
+    
+To accurately model the climate, rigorously developed coupling schemes that fully resolve the mechanisms by which the atmosphere affects the ocean and sea ice, the ocean affects sea ice and the atmosphere, and sea ice affects the ocean and atmosphere must be applied.  Until recently, computational insufficiencies made modeling of sea ice burdensome and forced concessions in the form of the parameterization and coupling of the ice with the greater earth climate system. 
+\section{Continuum Model Theory}
+
+1. Explain the theory behind continuum models.
+2. Explain the weaknesses of continuum models.
+\section{\ac{DEM} Theory}
+1. Explain Discrete Element modeling.
+2. Explain weakness of rigid body DEM for sea-ice modeling.
+\section{Non-Rigid Discrete Element Model}
+1. Give explanation of methodology.
+
+The following literature review, completed in partial satisfaction of the Thesis Proposal process, is only a small insight into the enormous topic of sea ice modeling's conception and thought.  Though this work is necessarily shallow in scope, it does a reasonable job in acquainting the reader in the research that has led to the push to create global scale \acp{DEM}.
+
+This review is broken into four sections: 1) Continuum Models and Theory, 2) \ac{DEM} Theory, 3) Ice Thermodynamics and Dynamical Forcing, and 4) Satellite Validation.  Each of these sections are aspects of the ultimate creation and validation of a Global Scale Discrete Element Sea Ice model capable of near and mid-range ice floe forecasting.
+
+\section{Continuum Models}
+Modern computational capabilities enable \acp{DEM}, such as Sandia National Lab's \ac{LAMMPS}, but 
+
+% Momentum Balance
+\begin{equation}
+m\frac{\partial u_i}{\partial t}=
+\frac{\partial \sigma_{ij}}{\partial x_j}+ 
+\tau_{ai}+\tau_{wi}+\varepsilon_{ij3}mfu_j-
+mg\frac{\partial H_o}{\partial x_i}
+\end{equation}
+Where $m\frac{\partial u_i}{\partial t}$ is rate of change of momentum, $\frac{\partial \sigma_{ij}}{\partial x_j}$ is the gradient of the stress tensor, $\tau_{ai}$ and $\tau_{wi}$ are the wind and ocean current stresses, $\varepsilon_{ij3}mfu_j$ is the Coriolis term, and $mg\frac{\partial H_o}{\partial x_i}$ is gravitational forcing due to the gradient of sea surface height.
+
+To ease computational burden, it is often preferred to model sea ice as a continuum.  These models are built around modeling the ice, not as a solid, but rather a plastic solid undergoing strain and as it moves across the arctic basin.  This model works well on large scales with coarse resolution where major anisotropic effects are not readily apparent in the behavior of the ice.  The foundation of decades of polar sea ice modeling is Hibler's Viscous Plastic Rheology.
+
+This rheology
+\section{Subsection Example}
+\lipsum[56]
+
+\section{Another Section}
+\lipsum[55-56]
+
+\begin{figure}[!htb]
+\framebox[\textwidth]{\parbox{\textwidth}{\lipsum[65]}}
+\caption{Some styled math in a caption, $\mathsf{Func}(x, \sigma) = x^2 + \overline{\sigma} + \pi$.}
+\caption*{\small This is the long caption that explains the figure in detail
+and expounds on its relevance to the text.
+This figure is original and requires no citation.}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\subfloat[First sub-figure]{
+   \framebox[0.47\textwidth]{\parbox{0.45\textwidth}{\lipsum[65]}}
+}
+\hfill
+\subfloat[Second sub-figure]{
+   \framebox[0.47\textwidth]{\parbox{0.45\textwidth}{\lipsum[65]}}
+}
+\caption{Caption using subfigure package.}
+\caption*{\small This is the long caption that explains the figure in detail
+and expounds on its relevance to the text.
+This figure is original and requires no citation.}
+\end{figure}
+
+\section{Anticipated Figures: \textcolor{blue}{Requires Update}}
+\begin{outline}[enumerate]
+\1 Ridge Geometry and evolution in time (if strain rate method used)
+\1 Binned Distribution of Floe Size
+\2 Floe size defined by elements that move incoherently from neighbor
+\2 Neighbor definition tolerances to be determined
+\2 Perhaps use analysis to remove atmospheric and oceanic forcing signatures
+\1 Binned Distribution of Strain Rate
+\2 Strain rates determined through internal morphology and multi-element floe ablation and conglomeration
+\1 Energy Density Spectrum of floe velocity
+\2 Further show scale invariance to time scale
+\2 Point out forcing signatures (if able)
+\1 Energy Density Spectrum of floe strain rate
+\2 Further show scale invariance to time scale
+\2 Point out forcing signatures (if able)
+\1 Thickness distribution evolution
+\1 Grid rectified sea ice thickness map
+\2 Arctic Basin Scale
+\2 Insets
+\3 \ac{MIZ}
+\3 Canadian Archipelago
+\1 Demonstration of Floe determination
+\2 Show borders around elements that are chosen to be considered a single floe
+\1 If time permits:
+\2 Create ridge in \ac{LAMMPS}
+\3 Run multiple trials to determine Mohr-Coulomb envelope as a function of thickness, ridge state, etc.
+\3 See if Porosity/Thickness manifold is recreated.
+\end{outline}
+\pagebreak
+
+\begin{outline}[enumerate]
+\1 Why Model Sea Ice
+\2 This section describes utility of ice modeling and the large scale environmental processes that sea ice affects.  Additionally, use National Security documents to motivate requirement for expanded understanding of the polar environment.
+\2 Describe the Polar Ice Modeling problem
+\3 Data Sparsity
+\3 Climatically Dynamic
+\3 Complex Interactions with Atmosphere and Ocean
+\3 Computationally Intensive
+\1 How has Sea Ice Modeling been done in the past
+\2 Introduce Dynamics equations for sea ice
+\3 Introduce idea of constitutive relationship for "solid" materials
+\2 Introduce Hibler's Model for Sea Ice
+\3 Explain and state Hibler's viscous plastic rheology
+\3 State weakness of the model (ineffeciency on parallel processors / computationally inefficient resolution for diagnostic equations / spatial perturbations are slow to resolve)
+\2 Introduce Hunke's modification
+\3 Explain addition of elastic modification
+\3 State that inclusion of modification accelerates the resolution of spatial perturbations, particularly in parallel computational environments.
+\2 Briefly Describe other modifications and motivation for their inclusion
+\1 Discrete Element Model Transition
+\2 Explain the requirement for transitioning from continuous models to discrete element models.
+\3 Describe the general conceptualization of continuous models and modifications therein to try to account for the anisotropic character of sea ice.
+\3 Explain that these modifications are simply parameterizations that are useful in a limited computation environment.
+\2 Explain the use of a discrete element model to allow sea ice anisotropy to manifest from rigorous physics at the element level.
+\1 Rigid Particle Problem
+\2 Discrete element models typically assume rigid elements.
+\3 Requires small particles
+\3 Requires 3-D modeling for ridging mechanics
+\2 DEMSI particles will be 1 km in diameter and 1 meter thick (not small).  They will be constrained to a 2-D manifold (no ridging possible)
+\2 Methodology for parameterizing ridging must be developed and included in DEMSI for real models.
+\3 Ridging mechanism must adequately dissipate energy due to irreversible internal element yield (ridging/cracking)
+\1 Describe potential schemes for resolving ridging in the elements.
+\2 Describe Coulombic Yield criteria
+\2 Give basic outline of Variational Technique to evaluate ridge end state as a function of floe interactions.
+\2 For every time step and every element
+\3 Evaluate the Coulombic Yield criteria.
+\3 Modify element consistent with Variational Ridging Technique
+\2 Outline potential schemes for achieving modification
+\3 Use external code, python or matlab, to reinitialize the model at regular intervals introducing an intermediate processing step.
+\4 Slow, Non-scaleable, Computationally expensive
+\4 Good for proof of concept
+\3 Write a fix, in LAMMPS src, to modify elements based on stress state.
+\4 Difficult to code
+\4 Fast, Scalable
+\3 Add additional parameter to atom type to trace ridge state
+\4 Difficult to code, Possible issues with stability of code
+\4 Fast, Scalable
+\2 Describe methods to validate data
+\end{outline}

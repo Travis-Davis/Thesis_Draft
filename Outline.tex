@@ -1,0 +1,53 @@
+\label{app:Outline}
+\begin{outline}[enumerate]
+\1 Chapter 1: Introduction
+\2 Discuss Previous Model techniques (specifically AIDJEX era)
+\2 Discuss limitations of these models
+\3 Poor performance of anisotropy prediction
+\3 Frequent parameterizations that are tuned and not physical
+\3 Scaling issues
+\2 Discuss way forward and development of discrete element models
+\2 Discuss DEMSI as transitional state
+\3 Ridgid approximation, internal stress = 0, etc
+\3 At computationally viable scale, internal stress != 0
+\4 Necessitates the development of alternate schemes.
+\3 Hopkins' contact model
+\2 Discuss my model and why it is being pursued
+\3 Scale dependence in Hopkin's contact model not well understood
+\3 Observation difficult on floe scale
+\3 Develop scheme that provides infrastructure to test behavior of single and multi floe systems
+\1 Chapter 2: Description of the Model
+\2 Discrete Element Model dynamical equations
+\3 Discuss each term in general equation:
+\4 Body forces
+\4 Skin forces
+\4 Internal forces
+\3 Introduce Peridynamics as frame work to compute internal forces within system
+\4 Introduce Peridynamic equations of motion
+\4 Introduce equations governing bond behavior of the system
+\4 Describe Elastic-Plastic material and equations used in LAMMPS implementation of system
+\3 Introduce model domain and simulation concept.
+\4 Scale Requirements and evaluation of simulation parameters:
+\4 Bulk Modulus
+\4 Shear Modulus
+\4 Critical strain
+\4 Yield Strength
+\4 Time step
+\3 Describe model steps
+\4 Initiation
+\4 Initial Isostasy
+\4 Inclusions
+\4 Intermediate Isostasy
+\4 Fix edges
+\4 Integrate to final results
+\1 Chapter 3: Simulation Results
+\2 TBD
+\1 Chapter 4: Hopkin's Parameterization
+\2 TBD
+\1 Chapter 5: Conclusions
+\2 TBD
+\1 Appendix 1: Hopkin's Lookup Tables
+\2 TBD
+\1 Appendix 2: LAMMPS code
+\2 TBD
+\end{outline}
